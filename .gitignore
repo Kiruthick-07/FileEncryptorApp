@@ -1,0 +1,32 @@
+# Maven build directory
+target/
+
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDE-specific files (IntelliJ, Eclipse, NetBeans, VS Code)
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+nbproject/
+.vscode/
+
+# JVM crash logs
+hs_err_pid*
+
+# OS specific files
+.DS_Store
+Thumbs.db
