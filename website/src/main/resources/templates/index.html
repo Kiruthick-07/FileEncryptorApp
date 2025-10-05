@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Encryptor</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="bg-pattern">
+        <div class="bg-circle circle1"></div>
+        <div class="bg-circle circle2"></div>
+    </div>
+    
+    <div class="container">
+        <div class="glass-card">
+            <h1>File Encryptor</h1>
+            <p class="subtitle">Securely encrypt and decrypt your files</p>
+            
+            <div class="tabs">
+                <button id="encrypt-tab" class="tab-btn active" onclick="switchTab('encrypt')">Encrypt</button>
+                <button id="decrypt-tab" class="tab-btn" onclick="switchTab('decrypt')">Decrypt</button>
+            </div>
+            
+            <div id="encrypt-content" class="tab-content active">
+                <form id="encrypt-form" enctype="multipart/form-data">
+                    <div class="form-group file-input-container">
+                        <label for="encrypt-file" class="file-label">
+                            <span class="file-icon"><i class="fas fa-file-upload"></i></span>
+                            <span class="file-text" id="encrypt-filename">Choose file to encrypt</span>
+                        </label>
+                        <input type="file" id="encrypt-file" name="file" class="file-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="input-with-icon">
+                            <i class="fas fa-key icon"></i>
+                            <input type="password" id="encrypt-key" name="secretKey" placeholder="Enter your secret key (min. 8 characters)" minlength="8" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-lock"></i> Encrypt File
+                    </button>
+                </form>
+            </div>
+            
+            <div id="decrypt-content" class="tab-content">
+                <form id="decrypt-form" enctype="multipart/form-data">
+                    <div class="form-group file-input-container">
+                        <label for="decrypt-file" class="file-label">
+                            <span class="file-icon"><i class="fas fa-file-upload"></i></span>
+                            <span class="file-text" id="decrypt-filename">Choose file to decrypt</span>
+                        </label>
+                        <input type="file" id="decrypt-file" name="file" class="file-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="input-with-icon">
+                            <i class="fas fa-key icon"></i>
+                            <input type="password" id="decrypt-key" name="secretKey" placeholder="Enter your secret key (min. 8 characters)" minlength="8" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-unlock"></i> Decrypt File
+                    </button>
+                </form>
+            </div>
+            
+            <div id="loading" class="loading-overlay">
+                <div class="loading-spinner"></div>
+                <p>Processing your file...</p>
+            </div>
+            
+            <div class="notification-container">
+                <div id="notification" class="notification"></div>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            <p>© 2025 File Encryptor | Secure AES Encryption</p>
+        </footer>
+    </div>
+
+    <script src="/js/script.js"></script>
+</body>
+</html>
