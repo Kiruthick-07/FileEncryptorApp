@@ -74,24 +74,81 @@ public class EncryptionService {
      * @throws Exception if decryption fails
      */
     public byte[] decryptFile(byte[] encryptedFileContent, String secretKey) throws Exception {
-        // Generate key from password
-        SecretKey key = generateKey(secretKey);
-
-        // Read IV from the beginning of the file
-        byte[] iv = new byte[16];
-        System.arraycopy(encryptedFileContent, 0, iv, 0, 16);
-        IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-
-        // Initialize cipher for decryption
-        Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-        cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
-
-        // Process the file content (skipping the IV)
-        byte[] encryptedContent = new byte[encryptedFileContent.length - 16];
-        System.arraycopy(encryptedFileContent, 16, encryptedContent, 0, encryptedContent.length);
-
-        // Decrypt
-        return cipher.doFinal(encryptedContent);
+        try {
+            // Check if file is too small to be a valid encrypted file
+            if (encryptedFileContent.length <= 16) {
+                throw new IllegalArgumentException("Invalid encrypted file: file is too small to contain the required IV");
+            }
+            
+            // Basic format check - this isn't foolproof but can catch some obvious issues
+            boolean seemsValid = true;
+            try {
+                // Check if the first 16 bytes (the IV) contain some non-zero values
+                // A proper IV should be random data
+                boolean allZero = true;
+                for (int i = 0; i < 16; i++) {
+                    if (encryptedFileContent[i] != 0) {
+                        allZero = false;
+                        break;
+                    }
+                }
+                
+                if (allZero) {
+                    seemsValid = false;
+                }
+                
+                // Check if the file appears to be text rather than encrypted data
+                // This is a basic heuristic - encrypted data should appear random
+                int textChars = 0;
+                for (int i = 16; i < Math.min(encryptedFileContent.length, 100); i++) {
+                    byte b = encryptedFileContent[i];
+                    // If character is a printable ASCII character
+                    if ((b >= 32 && b <= 126) || b == 9 || b == 10 || b == 13) {
+                        textChars++;
+                    }
+                }
+                
+                // If more than 90% are printable ASCII, it's likely not encrypted
+                if (textChars > (Math.min(encryptedFileContent.length, 100) - 16) * 0.9) {
+                    seemsValid = false;
+                }
+            } catch (Exception e) {
+                // Ignore exceptions in the format check
+            }
+            
+            if (!seemsValid) {
+                throw new IllegalArgumentException("This file doesn't appear to be a valid encrypted file. Please check that you're trying to decrypt a file that was encrypted with this application.");
+            }
+            
+            // Generate key from password
+            SecretKey key = generateKey(secretKey);
+    
+            // Read IV from the beginning of the file
+            byte[] iv = new byte[16];
+            System.arraycopy(encryptedFileContent, 0, iv, 0, 16);
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+    
+            // Initialize cipher for decryption
+            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+            cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
+    
+            // Process the file content (skipping the IV)
+            byte[] encryptedContent = new byte[encryptedFileContent.length - 16];
+            System.arraycopy(encryptedFileContent, 16, encryptedContent, 0, encryptedContent.length);
+    
+            // Decrypt
+            try {
+                return cipher.doFinal(encryptedContent);
+            } catch (javax.crypto.BadPaddingException e) {
+                throw new SecurityException("Decryption failed: Incorrect key or the file is not an encrypted file. Please check your secret key and try again.");
+            }
+        } catch (SecurityException e) {
+            throw e; // Rethrow security exceptions as they're already properly formatted
+        } catch (IllegalArgumentException e) {
+            throw e; // Rethrow validation exceptions as they're already properly formatted
+        } catch (Exception e) {
+            throw new Exception("Decryption failed: " + e.getMessage());
+        }
     }
 
     /**

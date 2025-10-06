@@ -74,10 +74,16 @@ public class FileEncryptorController {
             if (secretKey.isEmpty() || secretKey.length() < 8) {
                 return createErrorResponse("Secret key must be at least 8 characters long");
             }
+            
+            // Check file extension - optional warning
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename != null && !originalFilename.endsWith(".encrypted")) {
+                // This is just a warning log - we still attempt to decrypt
+                System.out.println("Warning: File doesn't have .encrypted extension: " + originalFilename);
+            }
 
             byte[] decryptedContent = encryptionService.decryptFile(file.getBytes(), secretKey);
             
-            String originalFilename = file.getOriginalFilename();
             String decryptedFilename;
             
             if (originalFilename != null && originalFilename.endsWith(".encrypted")) {
@@ -91,9 +97,21 @@ public class FileEncryptorController {
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + decryptedFilename + "\"")
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(decryptedContent);
+        } catch (SecurityException e) {
+            // This catches our specific security exceptions with user-friendly messages
+            return createErrorResponse(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            // This catches validation errors
+            return createErrorResponse(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            return createErrorResponse("Decryption failed: " + e.getMessage());
+            // For other exceptions, provide a more generic message
+            String errorMsg = e.getMessage();
+            if (errorMsg != null && errorMsg.contains("padding")) {
+                return createErrorResponse("Decryption failed: The file could not be decrypted with the provided key. Please check your secret key and ensure you're decrypting a valid encrypted file.");
+            } else {
+                return createErrorResponse("Decryption failed: " + errorMsg);
+            }
         }
     }
 

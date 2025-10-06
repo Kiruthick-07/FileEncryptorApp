@@ -114,6 +114,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function processFile(url, formData) {
         showLoading(true);
         
+        // Determine operation type for better error handling
+        const isDecryption = url.includes('decrypt');
+        
         fetch(url, {
             method: 'POST',
             body: formData
@@ -121,12 +124,20 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => {
             if (!response.ok) {
                 return response.json().then(data => {
-                    throw new Error(data.error || 'Unknown error occurred');
+                    // Get the specific error message from the server
+                    let errorMsg = data.error || 'Unknown error occurred';
+                    
+                    // For padding errors during decryption, provide a more user-friendly message
+                    if (isDecryption && errorMsg.includes('padding')) {
+                        errorMsg = 'The secret key appears to be incorrect or the file is not a valid encrypted file. Please check your key and try again.';
+                    }
+                    
+                    throw new Error(errorMsg);
                 });
             }
             
             // Get filename from response headers if available
-            let filename = 'processed_file';
+            let filename = isDecryption ? 'decrypted_file' : 'encrypted_file';
             const contentDisposition = response.headers.get('Content-Disposition');
             if (contentDisposition) {
                 const match = contentDisposition.match(/filename="(.+)"/);
@@ -136,6 +147,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             return response.blob().then(blob => {
+                // Verify the blob has content
+                if (blob.size === 0) {
+                    throw new Error('The server returned an empty file. The operation may have failed.');
+                }
+                
                 // Create download link and trigger click
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -145,14 +161,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 a.click();
                 a.remove();
                 
+                // Clear the file input and secret key for security
+                if (isDecryption) {
+                    decryptForm.reset();
+                    decryptFilename.textContent = 'Choose file to decrypt';
+                    decryptFilename.style.color = '';
+                } else {
+                    encryptForm.reset();
+                    encryptFilename.textContent = 'Choose file to encrypt';
+                    encryptFilename.style.color = '';
+                }
+                
                 // Show success message
-                const action = url.includes('encrypt') ? 'encrypted' : 'decrypted';
+                const action = isDecryption ? 'decrypted' : 'encrypted';
                 showNotification(`File ${action} successfully!`, 'success');
             });
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification(error.message || 'An error occurred', 'error');
+            
+            // Enhanced error handling for specific cases
+            let errorMessage = error.message || 'An error occurred';
+            
+            // Handle padding errors with a more user-friendly message
+            if (errorMessage.includes('padding') || errorMessage.includes('Incorrect key')) {
+                if (isDecryption) {
+                    errorMessage = 'Decryption failed: The secret key appears to be incorrect or the file is not a valid encrypted file.';
+                } else {
+                    errorMessage = 'Encryption failed: An unexpected error occurred during encryption.';
+                }
+            }
+            
+            showNotification(errorMessage, 'error');
         })
         .finally(() => {
             showLoading(false);
