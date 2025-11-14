@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "name": "file-encryptor-web",
+  "builds": [
+    {
+      "src": "pom.xml",
+      "use": "@vercel/java"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/encrypt",
+      "dest": "/encrypt"
+    },
+    {
+      "src": "/decrypt", 
+      "dest": "/decrypt"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "env": {
+    "SPRING_PROFILES_ACTIVE": "production"
+  }
+}
