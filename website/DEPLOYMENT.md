@@ -11,14 +11,14 @@ This guide explains how to deploy the File Encryptor Web Application to Render.
 
 ### Method 1: Using render.yaml (Recommended)
 
-1. **Push your code to a Git repository** that includes the `render.yaml` file in the `website/` directory.
+1. **Push your code to a Git repository** that includes the `render.yaml` file at the repository root.
 
 2. **Connect to Render:**
    - Go to [render.com](https://render.com) and sign in
    - Click "New +" and select "Blueprint"
    - Connect your Git repository
    - Select the repository containing your File Encryptor app
-   - Render will automatically detect the `render.yaml` file
+   - Render will automatically detect the root-level `render.yaml` file
 
 3. **Deploy:**
    - Render will automatically start building and deploying your application
