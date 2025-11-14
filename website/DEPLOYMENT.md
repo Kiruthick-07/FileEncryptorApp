@@ -9,7 +9,7 @@ This guide explains how to deploy the File Encryptor Web Application to Render.
 
 ## Deployment Steps
 
-### Method 1: Using render.yaml (Recommended)
+### Method 1: Using render.yaml (Recommended - Docker Blueprint)
 
 1. **Push your code to a Git repository** that includes the `render.yaml` file at the repository root.
 
@@ -21,11 +21,11 @@ This guide explains how to deploy the File Encryptor Web Application to Render.
    - Render will automatically detect the root-level `render.yaml` file
 
 3. **Deploy:**
-   - Render will automatically start building and deploying your application
-   - The build process will run `mvn clean package -DskipTests`
+   - Render will automatically start building and deploying your application using the Dockerfile in `website/`
+   - The multi-stage Docker build compiles the JAR and produces a slim runtime image
    - Once deployed, your app will be available at the provided Render URL
 
-### Method 2: Manual Web Service Creation
+### Method 2: Manual Docker Web Service Creation
 
 1. **Create a new Web Service:**
    - Go to [render.com](https://render.com) and sign in
@@ -34,10 +34,10 @@ This guide explains how to deploy the File Encryptor Web Application to Render.
 
 2. **Configure the service:**
    - **Name:** `file-encryptor-web`
-   - **Environment:** `Java`
-   - **Root Directory:** `website` (if your code is in a subdirectory)
-   - **Build Command:** `mvn clean package -DskipTests`
-   - **Start Command:** `java -jar target/file-encryptor-web-0.0.1-SNAPSHOT.jar`
+   - **Environment:** `Docker`
+   - **Root Directory:** `website`
+   - **Dockerfile Path:** `Dockerfile`
+   - Leave build/start commands empty (handled by Dockerfile)
 
 3. **Environment Variables:**
    Add these environment variables in the Render dashboard:
@@ -59,9 +59,11 @@ The application is configured to use the `PORT` environment variable provided by
 The `JAVA_TOOL_OPTIONS` environment variable is set to limit memory usage to 512MB, which is suitable for Render's free tier.
 
 ### Build Process
-- Maven builds the application with `mvn clean package -DskipTests`
+- Multi-stage Docker build:
+   - Stage 1 uses Maven to build the JAR (`mvn package -DskipTests`)
+   - Stage 2 copies the JAR into a lightweight JRE image
 - Tests are skipped to reduce build time
-- The resulting JAR file is executed with `java -jar`
+- Container starts with `java -jar /app/app.jar`
 
 ## Accessing Your Application
 
