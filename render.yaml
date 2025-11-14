@@ -1,9 +1,9 @@
 services:
   - type: web
     name: file-encryptor-web
-    env: docker
-    rootDir: website
-    dockerfilePath: Dockerfile
+    env: java
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -jar target/file-encryptor-web-0.0.1-SNAPSHOT.jar
     plan: free
     envVars:
       - key: JAVA_TOOL_OPTIONS
