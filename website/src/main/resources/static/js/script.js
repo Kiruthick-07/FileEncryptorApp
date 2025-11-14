@@ -78,6 +78,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // Attach event listeners instead of inline handlers (CSP-compliant)
+    const encryptTabBtn = document.getElementById('encrypt-tab');
+    const decryptTabBtn = document.getElementById('decrypt-tab');
+    if (encryptTabBtn && decryptTabBtn) {
+        encryptTabBtn.addEventListener('click', function() { window.switchTab('encrypt'); });
+        decryptTabBtn.addEventListener('click', function() { window.switchTab('decrypt'); });
+    }
+
     /**
      * Validate form inputs
      * @param {string} formType - 'encrypt' or 'decrypt'
